@@ -1,0 +1,29 @@
+server:
+  port: 9191
+  
+spring:  application:    name: API-GATEWAY
+  cloud:
+    gateway:      routes:      - id: CREATE-USER
+        uri: lb://CREATE-USER
+        predicates:        - Path=/user/create/**
+      - id: READ-USER
+        uri: lb://READ-USER
+        predicates:
+        - Path=/user/read/**
+      - id: UPDATE-USER
+        uri: lb://UPDATE-USER
+        predicates:
+        - Path=/user/update/**
+      - id: DELETE-USER
+        uri: lb://DELETE-USER
+        predicates:
+        - Path=/user/delete/**
+        
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    hostname: localhost
