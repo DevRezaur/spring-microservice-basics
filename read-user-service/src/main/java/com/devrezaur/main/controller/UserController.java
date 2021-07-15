@@ -1,5 +1,6 @@
 package com.devrezaur.main.controller;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,11 @@ public class UserController {
 	@GetMapping("/read/{id}")
 	public Optional<User> getUser(@PathVariable Long id) {
 		return userService.getUser(id);
+	}
+	
+	@GetMapping("/read/all")
+	public List<User> getAll() {
+		return userService.getAll();
 	}
 	
 }

@@ -3,7 +3,11 @@ server:
   
 spring:  application:    name: API-GATEWAY
   cloud:
-    gateway:      routes:      - id: CREATE-USER
+    gateway:      routes:
+      - id: AUTH-SERVICE
+        uri: lb://AUTH-SERVICE
+        predicates:
+        - Path=/auth/**      - id: CREATE-USER
         uri: lb://CREATE-USER
         predicates:        - Path=/user/create/**
       - id: READ-USER
