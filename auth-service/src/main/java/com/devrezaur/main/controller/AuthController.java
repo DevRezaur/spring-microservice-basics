@@ -18,7 +18,7 @@ import com.devrezaur.main.model.RefreshToken;
 import com.devrezaur.main.model.User;
 import com.devrezaur.main.payload.JwtResponse;
 import com.devrezaur.main.payload.RefreshTokenResponse;
-import com.devrezaur.main.security.jwt.JwtUtils;
+import com.devrezaur.main.security.jwt.JwtUtil;
 import com.devrezaur.main.security.jwt.RefreshTokenService;
 import com.devrezaur.main.service.MyUserDetails;
 import com.devrezaur.main.service.UserService;
@@ -30,7 +30,7 @@ public class AuthController {
 	@Autowired
 	private AuthenticationManager authenticationManager;
 	@Autowired
-	private JwtUtils jwtUtils;
+	private JwtUtil jwtUtil;
 	@Autowired
 	private RefreshTokenService refreshTokenService;
 	@Autowired
@@ -47,11 +47,11 @@ public class AuthController {
 		}
 		
 		MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
-		final String jwt = jwtUtils.generateToken(myUserDetails);
+		final String jwt = jwtUtil.generateToken(myUserDetails);
 		RefreshToken refreshToken = refreshTokenService.createRefreshToken(myUserDetails.getId());
 		List<String> roles = myUserDetails.getAuthorities().stream().map(item -> item.getAuthority()).collect(Collectors.toList());
 		
-		return ResponseEntity.ok(new JwtResponse("Bearer", jwt, refreshToken.getRefreshToken(), myUserDetails.getId(), myUserDetails.getFullname(),myUserDetails.getUsername() , roles));
+		return ResponseEntity.ok(new JwtResponse("Bearer", jwt, refreshToken.getRefreshToken(), myUserDetails.getId(), myUserDetails.getFullname(), myUserDetails.getUsername(), roles));
 	}
 	
 	@PostMapping("/registerUser")
@@ -66,8 +66,8 @@ public class AuthController {
 		return ResponseEntity.ok().body(regUser);
 	}
 	
-	@PostMapping("/logout")
-	public ResponseEntity<?> logoutUser(@RequestBody Map<String, Long> userid) {
+	@PostMapping("/invalidate")
+	public ResponseEntity<?> invalidate(@RequestBody Map<String, Long> userid) {
 		refreshTokenService.deleteByUserId(userid.get("id"));    
 	    return ResponseEntity.ok().body("User logged out");
 	}
@@ -80,7 +80,7 @@ public class AuthController {
 			User user = token.getUser();
 			Map<String, Object> claims = new HashMap<>();
 			claims.put("ROLES", user.getRoles().stream().map(item -> item.getRole()).collect(Collectors.toList()));
-			String jwt = jwtUtils.createToken(claims, user.getUsername());
+			String jwt = jwtUtil.createToken(claims, user.getUsername());
 			
 			return ResponseEntity.ok(new RefreshTokenResponse("Bearer", jwt, refreshToken.get("token")));
 		}

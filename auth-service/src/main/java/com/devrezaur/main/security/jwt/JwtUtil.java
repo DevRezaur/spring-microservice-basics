@@ -19,9 +19,9 @@ import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 
 @Component
-public class JwtUtils {
+public class JwtUtil {
 
-	private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
 	@Value("${jwt.secret}")
 	private String SECRET_KEY;

@@ -26,16 +26,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
 
 	@Autowired
-	private JwtUtils jwtUtils;
+	private JwtUtil jwtUtil;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		try {
 			String jwt = parseJwt(request);
 			
-			if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-				final String username = jwtUtils.extractUsername(jwt);
-				final List<String> roles = jwtUtils.extractRoles(jwt);
+			if (jwt != null && jwtUtil.validateJwtToken(jwt)) {
+				final String username = jwtUtil.extractUsername(jwt);
+				final List<String> roles = jwtUtil.extractRoles(jwt);
 				final UserDetails userDetails = new User(username, "", roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
 				
 				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
