@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import com.devrezaur.main.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -38,10 +39,18 @@ public class JwtAuthenticationFilter implements GatewayFilter {
 			}
 
 			String token = request.getHeaders().getOrEmpty("Authorization").get(0);
+			if(token.equals("")) {
+				response.setStatusCode(HttpStatus.BAD_REQUEST);
+				return response.setComplete();
+			}
+				
 			token = token.substring(7, token.length());
 
 			try {
 				jwtUtil.validateJwtToken(token);
+			} catch(ExpiredJwtException ex) {
+				response.setStatusCode(HttpStatus.UNAUTHORIZED);
+				return response.setComplete();
 			} catch (Exception ex) {
 				response.setStatusCode(HttpStatus.BAD_REQUEST);
 				return response.setComplete();
@@ -52,7 +61,7 @@ public class JwtAuthenticationFilter implements GatewayFilter {
 			List<String> roles = (List<String>) claims.get("ROLES");
 			
 			if(!roles.contains("ROLE_USER")) {
-				response.setStatusCode(HttpStatus.UNAUTHORIZED);
+				response.setStatusCode(HttpStatus.BAD_REQUEST);
 				return response.setComplete();
 			}
 

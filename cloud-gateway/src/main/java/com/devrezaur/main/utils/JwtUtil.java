@@ -23,15 +23,15 @@ public class JwtUtil {
 		return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
 	}
 
-	public void validateJwtToken(String token) throws Exception {
+	public void validateJwtToken(String token) throws Exception, ExpiredJwtException {
 		try {
 			Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+		} catch (ExpiredJwtException ex) {
+			logger.error("Expired token");
+			throw new ExpiredJwtException(null, null, "Expired token");
 		} catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
 			logger.error("Invalid token");
 			throw new Exception("Invalid token");
-		} catch (ExpiredJwtException ex) {
-			logger.error("Expired token");
-			throw new Exception("Expired token");
 		}
 	}
 
