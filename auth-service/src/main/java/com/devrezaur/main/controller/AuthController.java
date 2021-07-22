@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.devrezaur.main.model.RefreshToken;
 import com.devrezaur.main.model.User;
+import com.devrezaur.main.payload.HttpErrorResponse;
 import com.devrezaur.main.payload.JwtResponse;
 import com.devrezaur.main.payload.RefreshTokenResponse;
 import com.devrezaur.main.security.jwt.JwtUtil;
@@ -43,7 +44,7 @@ public class AuthController {
 		try {
 			auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
 		} catch (BadCredentialsException e) {
-			return ResponseEntity.badRequest().body("Incorrect credentials!");
+			return ResponseEntity.status(401).body(new HttpErrorResponse("auth-001", "Invalid login credentials!"));
 		}
 		
 		MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
@@ -51,7 +52,7 @@ public class AuthController {
 		RefreshToken refreshToken = refreshTokenService.createRefreshToken(myUserDetails.getId());
 		List<String> roles = myUserDetails.getAuthorities().stream().map(item -> item.getAuthority()).collect(Collectors.toList());
 		
-		return ResponseEntity.ok(new JwtResponse("Bearer", jwt, refreshToken.getRefreshToken(), myUserDetails.getId(), myUserDetails.getFullname(), myUserDetails.getUsername(), roles));
+		return ResponseEntity.status(200).body(new JwtResponse("Bearer", jwt, refreshToken.getRefreshToken(), myUserDetails.getId(), myUserDetails.getFullname(), myUserDetails.getUsername(), roles));
 	}
 	
 	@PostMapping("/registerUser")
@@ -59,17 +60,17 @@ public class AuthController {
 		User regUser = userService.findUserByUsername(user.getUsername());
 		
 		if(regUser != null)
-			return ResponseEntity.badRequest().body("User already exists!");
+			return ResponseEntity.status(409).body(new HttpErrorResponse("conflict", "User already exists!"));
 		
 		regUser = userService.saveUser(user);
 		
-		return ResponseEntity.ok().body(regUser);
+		return ResponseEntity.status(201).body(regUser);
 	}
 	
 	@PostMapping("/invalidate")
 	public ResponseEntity<?> invalidate(@RequestBody Map<String, Long> userid) {
 		refreshTokenService.deleteByUserId(userid.get("id"));    
-	    return ResponseEntity.ok().body("User logged out");
+	    return ResponseEntity.status(200).body("User logged out");
 	}
 	
 	@PostMapping("/refreshtoken")
@@ -82,10 +83,10 @@ public class AuthController {
 			claims.put("ROLES", user.getRoles().stream().map(item -> item.getRole()).collect(Collectors.toList()));
 			String jwt = jwtUtil.createToken(claims, user.getUsername());
 			
-			return ResponseEntity.ok(new RefreshTokenResponse("Bearer", jwt, refreshToken.get("token")));
+			return ResponseEntity.status(201).body(new RefreshTokenResponse("Bearer", jwt, refreshToken.get("token")));
 		}
 		
-		return ResponseEntity.badRequest().body("Refresh token expired!");
+		return ResponseEntity.status(401).body(new HttpErrorResponse("auth-002", "Refresh token invalid!"));
 	}
 	
 }
